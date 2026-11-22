@@ -13,39 +13,45 @@
 set -euo pipefail
 
 HOST="$(hostname -s 2>/dev/null || echo unknown)"
-figlet "Stack Wallet"
+
+# Pretty banners when figlet/toilet are installed; plain text otherwise.
+big() { if command -v figlet >/dev/null 2>&1; then figlet "$1"; else echo "== $1 =="; fi; }
+banner() {
+  if command -v toilet >/dev/null 2>&1; then toilet -f term -F border --gay; else cat; fi
+}
+big "Stack Wallet"
 
 echo "  Full Benchmark Suite"
 echo "  Host: $HOST  "
 echo "  $(date)"
 echo ""
 
-echo "Cold build (no sccache)" | toilet -f term -F border --gay
+echo "Cold build (no sccache)" | banner
 make clean 2>/dev/null || true
 bash bm/bench.sh --label cold-nosccache SCCACHE=0
 echo ""
 
-echo "Warm after cold no-sccache (CARGO_TARGET_DIR only)" | toilet -f term -F border --gay
+echo "Warm after cold no-sccache (CARGO_TARGET_DIR only)" | banner
 echo "━━━ B: Warm rebuild (no sccache, CARGO_TARGET_DIR cache hit) ━━━"
 bash bm/bench.sh --warm --label warm-nosccache SCCACHE=0
 echo ""
 
-echo "Cold with sccache" | toilet -f term -F border --gay
+echo "Cold with sccache" | banner
 make clean 2>/dev/null || true
 bash bm/bench.sh --label cold-sccache SCCACHE=1
 echo ""
 
-echo "Warm after cold sccache (sccache + target dir)" | toilet -f term -F border --gay
+echo "Warm after cold sccache (sccache + target dir)" | banner
 echo "━━━ D: Warm rebuild (sccache + CARGO_TARGET_DIR cache hit) ━━━"
 bash bm/bench.sh --warm --label warm-sccache SCCACHE=1
 echo ""
 
-echo "Cold build (Dart only, SKIP_NATIVE=1)" | toilet -f term -F border --gay
+echo "Cold build (Dart only, SKIP_NATIVE=1)" | banner
 make clean 2>/dev/null || true
 bash bm/bench.sh --label cold-dart-only SKIP_NATIVE=1
 echo ""
 
-echo "Warm Dart-only" | toilet -f term -F border --gay
+echo "Warm Dart-only" | banner
 bash bm/bench.sh --warm --label warm-dart-only SKIP_NATIVE=1
 echo ""
 

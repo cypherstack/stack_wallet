@@ -13,6 +13,12 @@
 set -euo pipefail
 
 HOST="$(hostname -s 2>/dev/null || echo unknown)"
+
+# Pretty banners when toilet is installed; plain text otherwise.
+banner() {
+  if command -v toilet >/dev/null 2>&1; then toilet -f term --metal; else cat; fi
+}
+
 OUTDIR="bm/results"
 mkdir -p "$OUTDIR"
 OUTFILE="${OUTDIR}/${HOST}.csv"
@@ -63,7 +69,7 @@ DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ARCH="$(uname -m)"
 OS_NAME="$(uname -s)"
 OS_VER="$(uname -r)"
-echo "Benchmark: ${LABEL}" | toilet -f term --metal   
+echo "Benchmark: ${LABEL}" | banner
 echo "Host: $HOST"
 echo "OS: $OS_NAME $OS_VER ($ARCH)"
 echo "Branch: $BRANCH"
@@ -77,7 +83,7 @@ DISK_BEFORE=$(du -sk . 2>/dev/null | cut -f1)
 
 # Clean unless warm
 if [ $WARM -eq 0 ]; then
-  echo "Cleaning" | toilet -f term --metal  
+  echo "Cleaning" | banner
   make clean 2>&1 | tail -1
 fi
 
@@ -110,11 +116,30 @@ restore_sccache() {
 }
 trap restore_sccache EXIT
 
-# Build
-echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | toilet -f term --metal  
+# The Makefile requires VERSION and a BUILD_NUM that is not below the latest
+# release tag, and build_app.sh asks an interactive question unless CONFIRM=1.
+# Supply benchmark defaults unless the caller passed their own; they are not
+# written to the CSV "flags" column, which keeps only what the caller asked for.
+BENCH_FLAGS=""
+case " ${MAKE_FLAGS} " in *" VERSION="*) ;; *) BENCH_FLAGS="${BENCH_FLAGS} VERSION=0.0.0" ;; esac
+case " ${MAKE_FLAGS} " in
+  *" BUILD_NUM="*) ;;
+  *)
+    LATEST_TAG_NUM="$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$/\1/p' | head -n1)"
+    BENCH_FLAGS="${BENCH_FLAGS} BUILD_NUM=${LATEST_TAG_NUM:-1}"
+    ;;
+esac
+case " ${MAKE_FLAGS} " in *" CONFIRM="*) ;; *) BENCH_FLAGS="${BENCH_FLAGS} CONFIRM=1" ;; esac
+
+# Build. A failing build must be recorded (success=0), so do not let `set -e`
+# abort on the pipeline, and take make's status, not tail's.
+echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS}${BENCH_FLAGS} " | banner
 START=$(date +%s)
-make ${BUILD_TARGET} ${MAKE_FLAGS} 2>&1 | tail -5
-RC=$?
+set +e
+# shellcheck disable=SC2086
+make ${BUILD_TARGET} ${MAKE_FLAGS} ${BENCH_FLAGS} 2>&1 | tail -5
+RC=${PIPESTATUS[0]}
+set -e
 END=$(date +%s)
 WALL=$((END - START))
 
@@ -132,12 +157,11 @@ echo "${LABEL},${BRANCH},${COMMIT},${HOST},${ARCH},${OS_NAME},${OS_VER},${DATE},
 echo ""
 if [ $RC -eq 0 ]; then
   MIN=$((WALL/60)); SEC=$((WALL%60))
-  echo "✓ Build succeeded in ${WALL}s \(${MIN}m ${SEC}s\)"
+  echo "✓ Build succeeded in ${WALL}s (${MIN}m ${SEC}s)"
 else
   echo "✗ Build FAILED after ${WALL}s"
 fi
-echo "Results appended: $OUTFILE" | toilet -f term --metal  
-
+echo "Results appended: $OUTFILE" | banner
 # Show all runs
 echo ""
 echo "=== All results for $HOST ($ARCH $OS_NAME $OS_VER) ==="

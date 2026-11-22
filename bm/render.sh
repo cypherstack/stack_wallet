@@ -22,18 +22,20 @@ CSS_FILE="$SCRIPT_DIR/report.css"
 
 # Convert to HTML
 echo "=== Markdown → HTML ==="
+# A private temp file, not a fixed name in /tmp that another user could pre-create.
+CSS_HEADER="$(mktemp "${TMPDIR:-/tmp}/bm_css.XXXXXX")"
+trap 'rm -f "$CSS_HEADER"' EXIT
 {
   echo '<style>'
   cat "$CSS_FILE"
   echo '</style>'
-} > /tmp/_bm_css.html
+} > "$CSS_HEADER"
 
 pandoc "$MD_FILE" \
   --standalone \
   --metadata title="Stack Wallet: Build Benchmark Report" \
-  --include-in-header /tmp/_bm_css.html \
+  --include-in-header "$CSS_HEADER" \
   -o "$HTML_FILE"
-rm -f /tmp/_bm_css.html
 echo "  → $HTML_FILE"
 
 # Convert to PDF
@@ -41,8 +43,6 @@ echo "=== HTML → PDF ==="
 pdf_ok=0
 
 if command -v weasyprint >/dev/null 2>&1; then
-  weasyprint "$HTML_FILE" "$PDF_FILE" 2>/dev/null && pdf_ok=1
-elif pip3 install --break-system-packages weasyprint 2>/dev/null; then
   weasyprint "$HTML_FILE" "$PDF_FILE" 2>/dev/null && pdf_ok=1
 elif command -v wkhtmltopdf >/dev/null 2>&1; then
   wkhtmltopdf --enable-local-file-access "$HTML_FILE" "$PDF_FILE" 2>/dev/null && pdf_ok=1
@@ -53,9 +53,17 @@ fi
 if [ "$pdf_ok" -eq 1 ] && [ -f "$PDF_FILE" ]; then
   echo "  → $PDF_FILE"
 else
-  echo "  ⚠ No PDF engine found. HTML ready: $HTML_FILE"
+  echo "  ⚠ No PDF engine found (install weasyprint or wkhtmltopdf yourself; this script"
+  echo "    never installs packages). HTML ready: $HTML_FILE"
 fi
 
-[ "$OPEN" -eq 1 ] && open "$PDF_FILE" 2>/dev/null || open "$HTML_FILE" 2>/dev/null || true
+# Open only when asked, and prefer the PDF.
+if [ "$OPEN" -eq 1 ]; then
+  if [ "$pdf_ok" -eq 1 ] && [ -f "$PDF_FILE" ]; then
+    open "$PDF_FILE" 2>/dev/null || true
+  else
+    open "$HTML_FILE" 2>/dev/null || true
+  fi
+fi
 
 echo "Done."
