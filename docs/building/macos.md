@@ -34,8 +34,9 @@ manual/Homebrew (prebuilt) path.
 
 ```sh
 RUST_BOM="$(scripts/bom_values.sh --get rust)"
+DNSSEC_RUST_BOM="$(scripts/bom_values.sh --get dnssec_rust)"
 brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf
-rustup toolchain install 1.90.0 "$RUST_BOM"
+rustup toolchain install "$DNSSEC_RUST_BOM" "$RUST_BOM"
 rustup target add --toolchain "$RUST_BOM" aarch64-apple-darwin x86_64-apple-darwin \
   aarch64-apple-ios aarch64-apple-ios-sim
 ```
