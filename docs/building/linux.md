@@ -14,7 +14,10 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 | [Nix](https://nixos.org/download/) | Source mode (`PREBUILTS=0`); not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
 
-Source mode needs `nix` on `PATH`; without Nix, use `PREBUILTS=1` (prebuilt).
+With `make`, source mode (`PREBUILTS=0`) needs an active Nix/direnv shell
+(`make bootstrap` or direnv), not just `nix` on `PATH`; outside such a shell
+`make` uses `PREBUILTS=1` (prebuilt) and rejects `PREBUILTS=0`. `build_app.sh`
+called directly only needs `nix` on `PATH` for source mode.
 
 A bundle built inside the Nix shell links against Nix's glibc and uses a
 `/nix/store` ELF interpreter and RUNPATH, so it runs only on that machine. Use
