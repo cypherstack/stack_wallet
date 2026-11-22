@@ -12,6 +12,9 @@ Flutter **3.47.2**. Follow the guide for the computer you build on:
 Allow at least 100 GB of free disk space. Source builds fill a Nix store as
 well as Flutter and native compiler caches.
 
+For a Nix-based setup with one command per target, see
+[Building with make](building/make.md).
+
 ## How a build works
 
 1. Install the prerequisites listed in your guide, including the SDKs for

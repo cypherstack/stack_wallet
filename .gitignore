@@ -120,3 +120,17 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+
+# Nix / direnv and local build state for `make`
+.direnv/
+/.cargo/config.toml
+/scripts/linux/pc/
+
+# Android local signing (make android-dev-key)
+/android/key.properties
+/android/dev-keystore.jks
+/android/keystore.jks
+/android/keystore-orig.jks
+
+# Benchmark results (bm/bench.sh)
+/bm/results/
