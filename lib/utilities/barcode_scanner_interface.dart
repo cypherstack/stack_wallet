@@ -10,10 +10,12 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../widgets/desktop/primary_button.dart';
+import '../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../widgets/desktop/secondary_button.dart';
 import '../widgets/qr_scanner.dart';
 import '../widgets/stack_dialog.dart';
@@ -32,12 +34,17 @@ abstract class BarcodeScannerInterface {
 class BarcodeScannerWrapper implements BarcodeScannerInterface {
   const BarcodeScannerWrapper();
 
+  Widget get scanner => switch (defaultTargetPlatform) {
+    TargetPlatform.android || TargetPlatform.iOS => const QrScanner(),
+    _ => const QrCodeScannerDialog(),
+  };
+
   @override
   Future<ScanResult> scan({required BuildContext context}) async {
     try {
       final data = await showDialog<String>(
         context: context,
-        builder: (context) => const QrScanner(),
+        builder: (context) => scanner,
       );
 
       return ScanResult(rawContent: data);
