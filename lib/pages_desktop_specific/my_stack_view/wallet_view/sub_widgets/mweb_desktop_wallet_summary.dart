@@ -127,7 +127,7 @@ class _WMwebDesktopWalletSummaryState
 
             const SizedBox(width: 8),
             WalletRefreshButton(
-              walletId: walletId,
+              wallet: ref.watch(pWallets).getWallet(walletId),
               initialSyncStatus: widget.initialSyncStatus,
             ),
             const SizedBox(width: 8),

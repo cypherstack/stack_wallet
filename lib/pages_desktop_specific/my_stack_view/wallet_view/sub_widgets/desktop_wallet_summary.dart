@@ -33,6 +33,7 @@ import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet.dart';
 import 'desktop_balance_toggle_button.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
@@ -85,24 +86,17 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     final coin = ref.watch(pWalletCoin(walletId));
     final Contract? tokenContract;
 
-    if (widget.isToken) {
-      switch (coin) {
-        case Ethereum():
-          tokenContract = ref.watch(
-            pCurrentTokenWallet.select((value) => value!.tokenContract),
-          );
-          break;
-
-        case Solana():
-          tokenContract = ref.watch(
-            pCurrentSolanaTokenWallet.select((value) => value!.solContract),
-          );
-          break;
-
-        default:
-          tokenContract = null;
-      }
+    final Wallet wallet;
+    if (widget.isToken && coin is Ethereum) {
+      final tokenWallet = ref.watch(pCurrentTokenWallet)!;
+      wallet = tokenWallet;
+      tokenContract = tokenWallet.tokenContract;
+    } else if (widget.isToken && coin is Solana) {
+      final tokenWallet = ref.watch(pCurrentSolanaTokenWallet)!;
+      wallet = tokenWallet;
+      tokenContract = tokenWallet.solContract;
     } else {
+      wallet = ref.watch(pWallets).getWallet(walletId);
       tokenContract = null;
     }
 
@@ -203,11 +197,8 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             ),
             const SizedBox(width: 8),
             WalletRefreshButton(
-              walletId: walletId,
+              wallet: wallet,
               initialSyncStatus: widget.initialSyncStatus,
-              tokenContractAddress: widget.isToken && tokenContract != null
-                  ? tokenContract.address
-                  : null,
             ),
 
             const SizedBox(width: 8),
