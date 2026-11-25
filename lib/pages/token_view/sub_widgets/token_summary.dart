@@ -55,8 +55,9 @@ class TokenSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenWallet = ref.watch(pCurrentTokenWallet)!;
-    final token = tokenWallet.tokenContract;
+    final token = ref.watch(
+      pCurrentTokenWallet.select((value) => value!.tokenContract),
+    );
     final balance = ref.watch(
       pTokenBalance((walletId: walletId, contractAddress: token.address)),
     );
@@ -144,8 +145,13 @@ class TokenSummary extends ConsumerWidget {
           top: 10,
           right: 10,
           child: WalletRefreshButton(
-            wallet: tokenWallet,
+            walletId: walletId,
             initialSyncStatus: initialSyncStatus,
+            tokenContractAddress: ref.watch(
+              pCurrentTokenWallet.select(
+                (value) => value!.tokenContract.address,
+              ),
+            ),
             overrideIconColor: Theme.of(
               context,
             ).extension<StackColors>()!.topNavIconPrimary,

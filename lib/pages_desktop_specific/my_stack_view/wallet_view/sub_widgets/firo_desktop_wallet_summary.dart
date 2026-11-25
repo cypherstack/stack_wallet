@@ -134,7 +134,7 @@ class _WFiroDesktopWalletSummaryState
 
             const SizedBox(width: 8),
             WalletRefreshButton(
-              wallet: ref.watch(pWallets).getWallet(walletId),
+              walletId: walletId,
               initialSyncStatus: widget.initialSyncStatus,
             ),
             const SizedBox(width: 8),

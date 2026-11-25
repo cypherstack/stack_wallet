@@ -12,41 +12,69 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../providers/global/wallets_provider.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/animated_widgets/rotating_arrows.dart';
 
 /// [eventBus] should only be set during testing
-class WalletRefreshButton extends StatefulWidget {
+class WalletRefreshButton extends ConsumerStatefulWidget {
   const WalletRefreshButton({
     super.key,
-    required this.wallet,
+    required this.walletId,
     required this.initialSyncStatus,
+    this.tokenContractAddress,
+    this.onPressed,
     this.eventBus,
     this.overrideIconColor,
   });
 
-  final Wallet wallet;
+  final String walletId;
   final WalletSyncStatus initialSyncStatus;
+  final String? tokenContractAddress;
+  final VoidCallback? onPressed;
   final EventBus? eventBus;
   final Color? overrideIconColor;
 
   @override
-  State<WalletRefreshButton> createState() => _RefreshButtonState();
+  ConsumerState<WalletRefreshButton> createState() => _RefreshButtonState();
 }
 
-class _RefreshButtonState extends State<WalletRefreshButton> {
+class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
   late final EventBus eventBus;
 
-  bool _refreshing = false;
   late RotatingArrowsController _spinController;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
+
+  bool _refreshing = false;
+
+  Wallet? _walletToRefresh() {
+    final address = widget.tokenContractAddress;
+    if (address == null) return ref.read(pWallets).getWallet(widget.walletId);
+
+    final sol = ref.read(pCurrentSolanaTokenWallet);
+    if (sol != null &&
+        sol.walletId == widget.walletId &&
+        sol.tokenMint == address) {
+      return sol;
+    }
+    final eth = ref.read(pCurrentTokenWallet);
+    if (eth != null &&
+        eth.walletId == widget.walletId &&
+        eth.tokenContract.address == address) {
+      return eth;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -57,19 +85,25 @@ class _RefreshButtonState extends State<WalletRefreshButton> {
 
     _syncStatusSubscription =
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) {
-        if (event.walletId != widget.wallet.walletId ||
-            !_spinController.hasLoadedAnimation) {
-          return;
-        }
-        switch (event.newStatus) {
-          case WalletSyncStatus.unableToSync:
-          case WalletSyncStatus.synced:
-            if (!_refreshing) _spinController.stop?.call();
-            break;
-          case WalletSyncStatus.syncing:
-            _spinController.repeat?.call();
-            break;
+      (event) async {
+        if (!_refreshing && event.walletId == widget.walletId) {
+          switch (event.newStatus) {
+            case WalletSyncStatus.unableToSync:
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
+              break;
+            case WalletSyncStatus.synced:
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
+              break;
+            case WalletSyncStatus.syncing:
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.repeat?.call();
+              }
+              break;
+          }
         }
       },
     );
@@ -100,9 +134,10 @@ class _RefreshButtonState extends State<WalletRefreshButton> {
               : null,
           splashColor: Theme.of(context).extension<StackColors>()!.highlight,
           onPressed: () async {
-            final wallet = widget.wallet;
-            if (_refreshing || wallet.refreshMutex.isLocked) return;
-
+            final wallet = _walletToRefresh();
+            if (_refreshing || wallet == null || wallet.refreshMutex.isLocked) {
+              return;
+            }
             _refreshing = true;
             try {
               if (_spinController.hasLoadedAnimation) {

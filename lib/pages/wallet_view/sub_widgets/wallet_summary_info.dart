@@ -239,7 +239,7 @@ class WalletSummaryInfo extends ConsumerWidget {
               ),
               const Spacer(),
               WalletRefreshButton(
-                wallet: ref.watch(pWallets).getWallet(walletId),
+                walletId: walletId,
                 initialSyncStatus: initialSyncStatus,
               ),
             ],

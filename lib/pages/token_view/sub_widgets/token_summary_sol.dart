@@ -160,8 +160,9 @@ class SolanaTokenSummary extends ConsumerWidget {
           top: 10,
           right: 10,
           child: WalletRefreshButton(
-            wallet: tokenWallet,
+            walletId: walletId,
             initialSyncStatus: initialSyncStatus,
+            tokenContractAddress: tokenMint,
             overrideIconColor:
                 Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
           ),
