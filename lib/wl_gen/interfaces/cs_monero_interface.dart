@@ -80,7 +80,9 @@ abstract class CsMoneroInterface {
   Future<String> getPublicSpendKey(WrappedWallet wallet);
   Future<String> getPrivateSpendKey(WrappedWallet wallet);
 
-  Future<bool> isSynced(WrappedWallet wallet);
+  Future<({int syncHeight, int nodeHeight})> getSyncHeights(
+    WrappedWallet wallet,
+  );
   Future<void> startSyncing(WrappedWallet wallet);
   Future<void> stopSyncing(WrappedWallet wallet);
 

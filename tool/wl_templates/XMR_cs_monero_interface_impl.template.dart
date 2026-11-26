@@ -217,8 +217,13 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       wallet.get<lib_monero.Wallet>().getPrivateSpendKey();
 
   @override
-  Future<bool> isSynced(WrappedWallet wallet) =>
-      wallet.get<lib_monero.Wallet>().isSynced();
+  Future<({int syncHeight, int nodeHeight})> getSyncHeights(
+    WrappedWallet wallet,
+  ) async {
+    final native = wallet.get<lib_monero.Wallet>();
+    final syncHeight = await native.getCurrentWalletSyncingHeight();
+    return (syncHeight: syncHeight, nodeHeight: await native.getDaemonHeight());
+  }
 
   @override
   Future<void> startSyncing(WrappedWallet wallet) =>
