@@ -12,10 +12,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
-import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../pages/exchange_view/trade_details_view.dart';
 import '../../../providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import '../../../providers/global/trades_service_provider.dart';
@@ -113,12 +111,10 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");
 
-                        final tx =
-                            await MainDB.instance
-                                .getTransactions(walletIds.first)
-                                .filter()
-                                .txidEqualTo(txid)
-                                .findFirst();
+                        final tx = await MainDB.instance.getTradeTransaction(
+                          walletIds.first,
+                          txid,
+                        );
 
                         if (mounted) {
                           await showDialog<void>(

@@ -12,11 +12,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
-import '../../models/isar/models/blockchain_data/transaction.dart';
 import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
@@ -198,12 +196,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   //todo: check if print needed
                                   // debugPrint("name: ${manager.walletName}");
 
-                                  final tx =
-                                      await MainDB.instance
-                                          .getTransactions(walletIds.first)
-                                          .filter()
-                                          .txidEqualTo(txid)
-                                          .findFirst();
+                                  final tx = await MainDB.instance.getTradeTransaction(
+                                    walletIds.first,
+                                    txid,
+                                  );
 
                                   if (mounted) {
                                     unawaited(

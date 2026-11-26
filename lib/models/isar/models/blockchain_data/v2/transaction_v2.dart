@@ -13,13 +13,14 @@ import 'output_v2.dart';
 part 'transaction_v2.g.dart';
 
 @Collection()
-class TransactionV2 {
+class TransactionV2 implements WalletTransaction {
   Id id = Isar.autoIncrement;
 
   @Index()
   final String walletId;
 
   @Index(unique: true, composite: [CompositeIndex("walletId")])
+  @override
   final String txid;
 
   final String hash;

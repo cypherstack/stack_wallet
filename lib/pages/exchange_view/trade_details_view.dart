@@ -22,6 +22,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app_config.dart';
 import '../../models/exchange/change_now/cn_exchange_transaction_status.dart';
 import '../../models/isar/models/blockchain_data/transaction.dart';
+import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/trades_service_provider.dart';
@@ -47,6 +48,7 @@ import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -59,6 +61,8 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/edit_note_view.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart' as tdv;
+import '../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    show TransactionV2DetailsView;
 import 'edit_trade_note_view.dart';
 import 'send_from_view.dart';
 
@@ -76,7 +80,7 @@ class TradeDetailsView extends ConsumerStatefulWidget {
 
   final String tradeId;
   final ClipboardInterface clipboard;
-  final Transaction? transactionIfSentFromStack;
+  final WalletTransaction? transactionIfSentFromStack;
   final String? walletId;
   final String? walletName;
 
@@ -87,7 +91,7 @@ class TradeDetailsView extends ConsumerStatefulWidget {
 class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final String tradeId;
   late final ClipboardInterface clipboard;
-  late final Transaction? transactionIfSentFromStack;
+  late final WalletTransaction? transactionIfSentFromStack;
   late final String? walletId;
 
   @override
@@ -551,16 +555,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     Text("Sent from", style: STextStyles.itemSubtitle(context)),
                     const SizedBox(height: 4),
                     SelectableText(
-                      widget.walletName!,
+                      widget.walletName ?? ref.watch(pWalletName(walletId!)),
                       style: STextStyles.itemSubtitle12(context),
                     ),
                     const SizedBox(height: 10),
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final coin = AppConfig.getCryptoCurrencyForTicker(
-                          trade.payInCurrency,
-                        )!;
+                        final tx = transactionIfSentFromStack!;
+                        final id = walletId!;
+                        final coin = ref.read(pWalletCoin(id));
+                        final name = tx is TransactionV2
+                            ? TransactionV2DetailsView.routeName
+                            : tdv.TransactionDetailsView.routeName;
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -569,25 +576,27 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 maxHeight:
                                     MediaQuery.of(context).size.height - 64,
                                 maxWidth: 580,
-                                child: tdv.TransactionDetailsView(
-                                  coin: coin,
-                                  transaction: transactionIfSentFromStack!,
-                                  walletId: walletId!,
-                                ),
+                                child: tx is TransactionV2
+                                    ? TransactionV2DetailsView(
+                                        transaction: tx,
+                                        coin: coin,
+                                        walletId: id,
+                                      )
+                                    : tdv.TransactionDetailsView(
+                                        transaction: tx as Transaction,
+                                        coin: coin,
+                                        walletId: id,
+                                      ),
                               ),
-                              const RouteSettings(
-                                name: tdv.TransactionDetailsView.routeName,
-                              ),
+                              RouteSettings(name: name),
                             ),
                           );
                         } else {
                           Navigator.of(context).pushNamed(
-                            tdv.TransactionDetailsView.routeName,
-                            arguments: Tuple3(
-                              transactionIfSentFromStack!,
-                              coin,
-                              walletId!,
-                            ),
+                            name,
+                            arguments: tx is TransactionV2
+                                ? (tx: tx, coin: coin, walletId: id)
+                                : Tuple3(tx as Transaction, coin, id),
                           );
                         }
                       },

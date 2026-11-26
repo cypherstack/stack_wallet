@@ -21,8 +21,12 @@ import 'output.dart';
 
 part 'transaction.g.dart';
 
+abstract interface class WalletTransaction {
+  String get txid;
+}
+
 @Collection()
-class Transaction {
+class Transaction implements WalletTransaction {
   Transaction({
     required this.walletId,
     required this.txid,
@@ -94,6 +98,7 @@ class Transaction {
   late final String walletId;
 
   @Index(unique: true, composite: [CompositeIndex("walletId")])
+  @override
   late final String txid;
 
   @Index()
