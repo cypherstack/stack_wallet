@@ -264,6 +264,7 @@ import 'services/shopinbit/src/models/car_research.dart';
 import 'services/shopinbit/src/models/payment.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
+import 'utilities/logger.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
@@ -347,7 +348,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ManageExplorerView.routeName:
         if (args is CryptoCurrency) {
@@ -357,7 +358,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FiroRescanRecoveryErrorView.routeName:
         if (args is String) {
@@ -367,7 +368,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletsView.routeName:
         return getRoute(
@@ -400,7 +401,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopTokenView.routeName:
         if (args is String) {
@@ -410,7 +411,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopSolTokenView.routeName:
         if (args is String) {
@@ -420,7 +421,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SelectWalletForTokenView.routeName:
         if (args is EthTokenEntity) {
@@ -430,7 +431,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SelectWalletForSolTokenView.routeName:
         if (args is SolTokenEntity) {
@@ -440,7 +441,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddCustomTokenView.routeName:
         return getRoute(
@@ -465,7 +466,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case TokenContractDetailsView.routeName:
         if (args is Tuple2<String, String>) {
@@ -478,7 +479,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SolanaTokenContractDetailsView.routeName:
         if (args is Tuple2<String, String>) {
@@ -491,7 +492,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SingleFieldEditView.routeName:
         if (args is Tuple2<String, String>) {
@@ -504,7 +505,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MonkeyView.routeName:
         if (args is String) {
@@ -514,7 +515,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SigningView.routeName:
         if (args is String) {
@@ -524,7 +525,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CompactAddressListView.routeName:
         if (args is String) {
@@ -534,7 +535,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CreateNewFrostMsWalletView.routeName:
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
@@ -547,7 +548,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RestoreFrostMsWalletView.routeName:
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
@@ -560,7 +561,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SelectNewFrostImportTypeView.routeName:
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
@@ -573,7 +574,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FrostStepScaffold.routeName:
         return getRoute(
@@ -590,7 +591,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FrostParticipantsView.routeName:
         if (args is String) {
@@ -600,7 +601,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case InitiateResharingView.routeName:
         if (args is String) {
@@ -610,7 +611,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CompleteReshareConfigView.routeName:
         if (args is ({String walletId, Map<String, int> resharers})) {
@@ -623,7 +624,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FrostSendView.routeName:
         if (args is ({String walletId, CryptoCurrency coin})) {
@@ -634,7 +635,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       // case MonkeyLoadedView.routeName:
       //   if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
@@ -649,7 +650,7 @@ class RouteGenerator {
       //       ),
       //     );
       //   }
-      //   return _routeError("${settings.name} invalid args: ${args.toString()}");
+      //   break;
 
       case CoinControlView.routeName:
         if (args is Tuple2<String, CoinControlViewType>) {
@@ -672,7 +673,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case OrdinalsView.routeName:
         if (args is String) {
@@ -682,7 +683,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopOrdinalsView.routeName:
         if (args is String) {
@@ -692,7 +693,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case OrdinalDetailsView.routeName:
         if (args is ({Ordinal ordinal, String walletId})) {
@@ -705,7 +706,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopOrdinalDetailsView.routeName:
         if (args is ({Ordinal ordinal, String walletId})) {
@@ -718,7 +719,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case OrdinalsFilterView.routeName:
         return getRoute(
@@ -736,7 +737,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NameDetailsView.routeName:
         if (args is (Id, String)) {
@@ -746,7 +747,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case PaynymClaimView.routeName:
         if (args is String) {
@@ -756,7 +757,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case PaynymHomeView.routeName:
         if (args is String) {
@@ -766,7 +767,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddNewPaynymFollowView.routeName:
         if (args is String) {
@@ -776,7 +777,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CashFusionView.routeName:
         if (args is String) {
@@ -788,7 +789,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NamecoinNamesHomeView.routeName:
         if (args is String) {
@@ -798,7 +799,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SalviumCreateStakeView.routeName:
         if (args is String) {
@@ -808,7 +809,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ManageDomainView.routeName:
         if (args is ({String walletId, UTXO utxo})) {
@@ -819,7 +820,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
       //
       //
       //
@@ -929,7 +930,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MasternodesHomeView.routeName:
         if (args is String) {
@@ -939,7 +940,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CreateMasternodeView.routeName:
         if (args is Map<String, dynamic>) {
@@ -954,7 +955,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MasternodeDetailsView.routeName:
         if (args is MasternodeInfo) {
@@ -964,7 +965,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case BuySparkNameView.routeName:
         if (args is ({String walletId, String name})) {
@@ -986,7 +987,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ConfirmSparkNameTransactionView.routeName:
         if (args is ({String walletId, TxData txData})) {
@@ -999,7 +1000,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SparkNameDetailsView.routeName:
         if (args is ({String walletId, SparkName name})) {
@@ -1010,7 +1011,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SparkAddressOwnershipProofView.routeName:
         if (args is ({String walletId, String address})) {
@@ -1023,7 +1024,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FusionProgressView.routeName:
         if (args is String) {
@@ -1035,7 +1036,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ChurningView.routeName:
         if (args is String) {
@@ -1045,7 +1046,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ChurningProgressView.routeName:
         if (args is String) {
@@ -1055,7 +1056,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopCashFusionView.routeName:
         if (args is String) {
@@ -1065,7 +1066,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopChurningView.routeName:
         if (args is String) {
@@ -1075,7 +1076,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitSetupView.routeName:
         return getRoute(
@@ -1099,7 +1100,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CakePayOrderView.routeName:
         if (args is CakePayOrder) {
@@ -1109,7 +1110,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CakePayOrdersView.routeName:
         return getRoute(
@@ -1131,10 +1132,10 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CakePayConfirmSendView.routeName:
-        return _routeError("${settings.name} should be pushed directly");
+        break;
 
       case ShopInBitStep2.routeName:
         return getRoute(
@@ -1154,7 +1155,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitStep4.routeName:
         if (args is ShopInBitCategory) {
@@ -1164,7 +1165,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitOrderCreated.routeName:
         if (args is int) {
@@ -1174,7 +1175,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitTicketsView.routeName:
         return getRoute(
@@ -1198,7 +1199,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitOfferView.routeName:
         if (args is int) {
@@ -1208,7 +1209,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitShippingView.routeName:
         if (args
@@ -1225,7 +1226,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitCarFeeView.routeName:
         if (args is ShopinbitRequestDraft) {
@@ -1235,7 +1236,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitCarResearchPaymentView.routeName:
         if (args is ({CarResearchInvoice invoice, String customerKey})) {
@@ -1248,7 +1249,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitPaymentView.routeName:
         if (args is ({int apiTicketId, PaymentInfo paymentInfo})) {
@@ -1261,7 +1262,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ShopInBitSendFromView.routeName:
         if (args is Tuple4<CryptoCurrency, Amount, String, int>) {
@@ -1276,7 +1277,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case GlobalSettingsView.routeName:
         return getRoute(
@@ -1416,7 +1417,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ChangeRepresentativeView.routeName:
         if (args is String) {
@@ -1426,7 +1427,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AppearanceSettingsView.routeName:
         return getRoute(
@@ -1513,7 +1514,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ManageCoinUnitsView.routeName:
         return getRoute(
@@ -1530,7 +1531,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CreateBackupInfoView.routeName:
         return getRoute(
@@ -1561,7 +1562,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NodeDetailsView.routeName:
         if (args is Tuple3<CryptoCurrency, String, String>) {
@@ -1575,7 +1576,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditNoteView.routeName:
         if (args is Tuple2<String, String>) {
@@ -1586,7 +1587,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditAddressLabelView.routeName:
         if (args is int) {
@@ -1596,7 +1597,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditTradeNoteView.routeName:
         if (args is Tuple2<String, String>) {
@@ -1607,7 +1608,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddEditNodeView.routeName:
         if (args
@@ -1623,7 +1624,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ContactDetailsView.routeName:
         if (args is String) {
@@ -1633,7 +1634,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddNewContactAddressView.routeName:
         if (args is String) {
@@ -1643,7 +1644,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditContactNameEmojiView.routeName:
         if (args is String) {
@@ -1653,7 +1654,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditContactAddressView.routeName:
         if (args is Tuple2<String, ContactAddressEntry>) {
@@ -1666,7 +1667,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SystemBrightnessThemeSelectionView.routeName:
         return getRoute(
@@ -1687,7 +1688,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ManageEpicboxView.routeName:
         if (args is String) {
@@ -1697,7 +1698,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddEditEpicboxMobileView.routeName:
         if (args
@@ -1716,7 +1717,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletBackupView.routeName:
         if (args is ({String walletId, List<String> mnemonic})) {
@@ -1788,7 +1789,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MobileKeyDataView.routeName:
         if (args is ({String walletId, KeyDataInterface keyData})) {
@@ -1801,7 +1802,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletSettingsWalletSettingsView.routeName:
         if (args is String) {
@@ -1811,7 +1812,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RenameWalletView.routeName:
         if (args is String) {
@@ -1821,7 +1822,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DeleteWalletWarningView.routeName:
         if (args is String) {
@@ -1831,7 +1832,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case CreateOrRestoreWalletView.routeName:
         if (args is AddWalletListEntity) {
@@ -1841,7 +1842,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NameYourWalletView.routeName:
         if (args is Tuple2<AddWalletType, CryptoCurrency>) {
@@ -1852,7 +1853,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NewWalletRecoveryPhraseWarningView.routeName:
         if (args is Tuple2<String, CryptoCurrency>) {
@@ -1865,7 +1866,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RestoreOptionsView.routeName:
         if (args is Tuple2<String, CryptoCurrency>) {
@@ -1876,7 +1877,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NewWalletOptionsView.routeName:
         if (args is Tuple2<String, CryptoCurrency>) {
@@ -1887,7 +1888,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RestoreWalletView.routeName:
         if (args is Tuple5<String, CryptoCurrency, int, int, String>) {
@@ -1903,7 +1904,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RestoreViewOnlyWalletView.routeName:
         if (args
@@ -1922,7 +1923,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NewWalletRecoveryPhraseView.routeName:
         if (args is Tuple2<Wallet, List<String>>) {
@@ -1935,7 +1936,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case VerifyRecoveryPhraseView.routeName:
         if (args is Tuple2<Wallet, List<String>>) {
@@ -1948,7 +1949,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ManageFavoritesView.routeName:
         return getRoute(
@@ -1964,7 +1965,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case TransactionDetailsView.routeName:
         if (args is Tuple3<Transaction, CryptoCurrency, String>) {
@@ -1978,7 +1979,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case tvd.TransactionV2DetailsView.routeName:
         if (args
@@ -1993,7 +1994,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FusionGroupDetailsView.routeName:
         if (args
@@ -2012,7 +2013,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AllTransactionsView.routeName:
         if (args is String) {
@@ -2022,7 +2023,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AllTransactionsV2View.routeName:
         if (args is String) {
@@ -2042,7 +2043,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case TransactionSearchFilterView.routeName:
         if (args is CryptoCurrency) {
@@ -2052,7 +2053,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ReceiveView.routeName:
         if (args is String) {
@@ -2069,7 +2070,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case FinalizeView.routeName:
         if (args is String) {
@@ -2079,7 +2080,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EpicFinalizeView.routeName:
         if (args is String) {
@@ -2089,7 +2090,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletAddressesView.routeName:
         if (args is String) {
@@ -2099,7 +2100,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case AddressDetailsView.routeName:
         if (args is Tuple2<Id, String>) {
@@ -2110,7 +2111,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SendView.routeName:
         if (args is Tuple2<String, CryptoCurrency>) {
@@ -2148,7 +2149,7 @@ class RouteGenerator {
           );
         }
 
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case TokenSendView.routeName:
         if (args is Tuple3<String, CryptoCurrency, EthContract>) {
@@ -2162,7 +2163,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SolTokenSendView.routeName:
         if (args is (String, String)) {
@@ -2173,7 +2174,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SolTokenReceiveView.routeName:
         if (args is (String, String)) {
@@ -2184,7 +2185,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ConfirmTransactionView.routeName:
         if (args is (TxData, String, VoidCallback)) {
@@ -2198,7 +2199,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ConfirmNameTransactionView.routeName:
         if (args is (TxData, String)) {
@@ -2209,7 +2210,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletInitiatedExchangeView.routeName:
         if (args is Tuple2<String, CryptoCurrency>) {
@@ -2247,7 +2248,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case NotificationsView.routeName:
         if (args is String?) {
@@ -2257,7 +2258,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case WalletSettingsView.routeName:
         if (args
@@ -2278,7 +2279,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DeleteWalletRecoveryPhraseView.routeName:
         if (args is ({String walletId, List<String> mnemonicWords})) {
@@ -2312,7 +2313,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DeleteViewOnlyWalletKeysView.routeName:
         if (args is ({String walletId, ViewOnlyWalletData data})) {
@@ -2325,7 +2326,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       // exchange steps
 
@@ -2337,7 +2338,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case Step2View.routeName:
         if (args is IncompleteExchangeModel) {
@@ -2347,7 +2348,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case Step3View.routeName:
         if (args is IncompleteExchangeModel) {
@@ -2357,7 +2358,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case Step4View.routeName:
         if (args is IncompleteExchangeModel) {
@@ -2367,7 +2368,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case TradeDetailsView.routeName:
         if (args is Tuple4<String, Transaction?, String?, String?>) {
@@ -2382,7 +2383,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case ChooseAddressFromStackView.routeName:
         if (args is CryptoCurrency) {
@@ -2392,7 +2393,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SendFromView.routeName:
         if (args is Tuple4<CryptoCurrency, Amount, String, Trade>) {
@@ -2407,7 +2408,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case GenerateUriQrCodeView.routeName:
         if (args is Tuple2<CryptoCurrency, String>) {
@@ -2420,7 +2421,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case BuyQuotePreviewView.routeName:
         if (args is SimplexQuote) {
@@ -2430,7 +2431,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case RbfSettingsView.routeName:
         if (args is String) {
@@ -2440,7 +2441,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SparkInfoView.routeName:
         if (args is String) {
@@ -2450,7 +2451,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case EditRefreshHeightView.routeName:
         if (args is String) {
@@ -2460,7 +2461,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case BuyDomainView.routeName:
         if (args is ({String walletId, String domainName})) {
@@ -2473,7 +2474,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
@@ -2512,7 +2513,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopHomeView.routeName:
         return getRoute(
@@ -2558,7 +2559,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopBuyView.routeName:
         return getRoute(
@@ -2617,7 +2618,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopWalletAddressesView.routeName:
         if (args is String) {
@@ -2627,7 +2628,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SparkCoinsView.routeName:
         if (args is String) {
@@ -2637,7 +2638,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MwebUtxosView.routeName:
         if (args is String) {
@@ -2647,7 +2648,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopCoinControlView.routeName:
         if (args is String) {
@@ -2657,7 +2658,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case BoostTransactionView.routeName:
         if (args is TransactionV2) {
@@ -2667,7 +2668,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case BackupRestoreSettings.routeName:
         return getRoute(
@@ -2811,7 +2812,7 @@ class RouteGenerator {
             RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case UnlockWalletKeysDesktop.routeName:
         if (args is String) {
@@ -2829,7 +2830,7 @@ class RouteGenerator {
           //   ),
           // );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopDeleteWalletDialog.routeName:
         if (args is String) {
@@ -2847,7 +2848,7 @@ class RouteGenerator {
           //   ),
           // );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DesktopAttentionDeleteWallet.routeName:
         if (args is String) {
@@ -2865,7 +2866,7 @@ class RouteGenerator {
           //   ),
           // );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case DeleteWalletKeysPopup.routeName:
         if (args is Tuple2<String, List<String>>) {
@@ -2883,7 +2884,7 @@ class RouteGenerator {
           //   ),
           // );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case QRCodeDesktopPopupContent.routeName:
         if (args is String) {
@@ -2901,7 +2902,7 @@ class RouteGenerator {
           //   ),
           // );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case MyTokensView.routeName:
         if (args is String) {
@@ -2911,7 +2912,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       // case WalletView.routeName:
       //   if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
@@ -2944,7 +2945,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       case SolTokenView.routeName:
         if (args is String) {
@@ -2963,7 +2964,7 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       // == End of desktop specific routes =====================================
 
@@ -2976,11 +2977,13 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        break;
 
       default:
-        return _routeError("");
+        // Unknown names can include arbitrary input from a deep link.
+        return _routeError(null, args.runtimeType);
     }
+    return _routeError(settings.name, args.runtimeType);
   }
 
   static Route<T> getRoute<T>({
@@ -3027,18 +3030,16 @@ class RouteGenerator {
     );
   }
 
-  static Route<T> _routeError<T>(String message) {
-    // Replace with robust ErrorView page
-    final Widget errorView = Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('Navigation error'),
-      ),
-      body: Center(
-        child: Text(
-          'Error handling route, this is not supposed to happen. Try restarting the app.\n$message',
-        ),
-      ),
+  static Route<T> _routeError<T>(String? name, Type argumentType) {
+    Logging.instance.w(
+      'Navigation error opening ${name ?? '<unknown>'} (argument type: $argumentType)',
+    );
+    final message = name == TradeDetailsView.routeName
+        ? "Couldn’t open trade details."
+        : "Couldn’t open this screen.";
+    final errorView = Scaffold(
+      appBar: AppBar(title: const Text('Navigation error')),
+      body: Center(child: Text(message)),
     );
 
     return getRoute<T>(
