@@ -92,9 +92,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           children: [
             child,
             Material(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.overlay.withOpacity(0.6),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -149,10 +150,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             Text(
                               "Trades",
                               style: STextStyles.itemSubtitle(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -171,10 +171,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                               onTap: () async {
                                 final String tradeId = trades[index].tradeId;
 
-                                final lookup =
-                                    ref
-                                        .read(tradeSentFromStackLookupProvider)
-                                        .all;
+                                final lookup = ref
+                                    .read(tradeSentFromStackLookupProvider)
+                                    .all;
 
                                 //todo: check if print needed
                                 // debugPrint("ALL: $lookup");
@@ -196,10 +195,11 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   //todo: check if print needed
                                   // debugPrint("name: ${manager.walletName}");
 
-                                  final tx = await MainDB.instance.getTradeTransaction(
-                                    walletIds.first,
-                                    txid,
-                                  );
+                                  final tx = await MainDB.instance
+                                      .getTradeTransaction(
+                                        walletIds.first,
+                                        txid,
+                                      );
 
                                   if (mounted) {
                                     unawaited(
@@ -238,10 +238,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Container(
                             decoration: BoxDecoration(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),
