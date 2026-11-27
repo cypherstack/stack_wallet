@@ -288,6 +288,14 @@ class MainDB {
     return isar.transactions.getByTxidWalletId(txid, walletId);
   }
 
+  Future<WalletTransaction?> getTradeTransaction(
+    String walletId,
+    String txid,
+  ) async {
+    return await isar.transactionV2s.getByTxidWalletId(txid, walletId) ??
+        await getTransaction(walletId, txid);
+  }
+
   Stream<Transaction?> watchTransaction({
     required Id id,
     bool fireImmediately = false,

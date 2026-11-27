@@ -2370,7 +2370,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TradeDetailsView.routeName:
-        if (args is Tuple4<String, Transaction?, String?, String?>) {
+        if (args is Tuple4<String, WalletTransaction?, String?, String?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TradeDetailsView(

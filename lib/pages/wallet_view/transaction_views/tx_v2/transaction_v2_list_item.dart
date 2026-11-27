@@ -109,9 +109,7 @@ class TxListItem extends ConsumerWidget {
                                       Flexible(
                                         child: TradeDetailsView(
                                           tradeId: trade.tradeId,
-                                          // TODO: [prio:med]
-                                          // transactionIfSentFromStack: tx,
-                                          transactionIfSentFromStack: null,
+                                          transactionIfSentFromStack: _tx,
                                           walletName: ref.watch(
                                             pWalletName(_tx.walletId),
                                           ),

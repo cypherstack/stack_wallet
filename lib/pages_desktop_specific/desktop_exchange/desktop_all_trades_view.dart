@@ -15,13 +15,11 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/exchange/change_now/cn_exchange_transaction_status.dart';
 import '../../models/exchange/response_objects/trade.dart';
-import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../pages/exchange_view/trade_details_view.dart';
 import '../../providers/exchange/trade_sent_from_stack_lookup_provider.dart';
@@ -363,11 +361,8 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             // debugPrint("name: ${manager.walletName}");
 
             await loadAndPresentDesktopTradeDetails(
-              load: () => MainDB.instance
-                  .getTransactions(walletIds.first)
-                  .filter()
-                  .txidEqualTo(txid)
-                  .findFirst(),
+              load: () =>
+                  MainDB.instance.getTradeTransaction(walletIds.first, txid),
               present: (tx) {
                 if (mounted) {
                   unawaited(
