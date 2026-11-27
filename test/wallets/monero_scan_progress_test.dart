@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:compat/compat.dart' show SyncedSyncStatus, SyncingSyncStatus;
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,8 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wl_gen/interfaces/cs_salvium_interface.dart'
+    show WrappedWallet;
 
 class _Wallet extends MoneroWallet {
   _Wallet() : super(CryptoCurrencyNetwork.main);
@@ -30,6 +34,13 @@ class _Wallet extends MoneroWallet {
   @override
   Future<void> updateTransactions() =>
       Future<void>.delayed(const Duration(seconds: 1));
+
+  Future<void> applyPolledHeights(
+    Future<({int syncHeight, int nodeHeight})> Function() readHeights,
+  ) => updateSyncStatusFromPolledHeights(
+    currentWallet: wallet!,
+    readHeights: readHeights,
+  );
 }
 
 void main() {
@@ -46,7 +57,6 @@ void main() {
           .listen((event) => blocks.add(event.blocksRemaining));
 
       wallet.onSyncingUpdate(syncHeight: 0, nodeHeight: 0);
-      wallet.onSyncingUpdate(syncHeight: 101, nodeHeight: 100);
       expect(wallet.syncStatus, isNull);
       wallet.onSyncingUpdate(syncHeight: 1, nodeHeight: 100);
       wallet.onSyncingUpdate(syncHeight: 99, nodeHeight: 100);
@@ -67,6 +77,54 @@ void main() {
       expect(blocks, [99, 1, 0, 1]);
       statusSubscription.cancel();
       blocksSubscription.cancel();
+    });
+  });
+
+  test('XMR treats a wallet ahead of its node as caught up', () {
+    fakeAsync((_) {
+      final wallet = _Wallet();
+      wallet.onSyncingUpdate(syncHeight: 99, nodeHeight: 100);
+      expect(wallet.syncStatus, isA<SyncingSyncStatus>());
+
+      wallet.onSyncingUpdate(syncHeight: 101, nodeHeight: 100);
+      expect(wallet.syncStatus, isA<SyncedSyncStatus>());
+      expect(wallet.syncStatus!.progress(), 1);
+    });
+  });
+
+  test('a delayed height read cannot overwrite a newer listener update', () {
+    fakeAsync((clock) {
+      final wallet = _Wallet()..wallet = const WrappedWallet('test-wallet');
+
+      unawaited(
+        wallet.applyPolledHeights(
+          () async => (syncHeight: 99, nodeHeight: 100),
+        ),
+      );
+      clock.flushMicrotasks();
+      expect(wallet.syncStatus, isA<SyncingSyncStatus>());
+
+      // Saturate the repeated-synced suppression so the next listener update
+      // does not replace the status object used by the old identity guard.
+      for (var i = 0; i < 4; i++) {
+        wallet.onSyncingUpdate(syncHeight: 100, nodeHeight: 100);
+      }
+
+      final heights = Completer<({int syncHeight, int nodeHeight})>();
+      var completed = false;
+      unawaited(
+        wallet
+            .applyPolledHeights(() => heights.future)
+            .then((_) => completed = true),
+      );
+      clock.flushMicrotasks();
+
+      wallet.onSyncingUpdate(syncHeight: 101, nodeHeight: 101);
+      heights.complete((syncHeight: 99, nodeHeight: 100));
+      clock.flushMicrotasks();
+
+      expect(completed, isTrue);
+      expect(wallet.syncStatus, isA<SyncedSyncStatus>());
     });
   });
 }

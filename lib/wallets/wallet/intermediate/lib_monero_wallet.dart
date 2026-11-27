@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:isar_community/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
@@ -114,6 +115,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
   lib_monero_compat.SyncStatus? _syncStatus;
   int _syncedCount = 0;
+  int _syncUpdateGeneration = 0;
   void _setSyncStatus(lib_monero_compat.SyncStatus status) {
     if (status is lib_monero_compat.SyncedSyncStatus) {
       if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
@@ -808,12 +810,24 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required int syncHeight,
     required int nodeHeight,
     String? message,
-    bool refreshTransactions = true,
   }) {
-    if (nodeHeight > 0 && syncHeight >= 0 && syncHeight <= nodeHeight) {
+    _syncUpdateGeneration++;
+    _applySyncingUpdate(
+      syncHeight: syncHeight,
+      nodeHeight: nodeHeight,
+      refreshTransactions: true,
+    );
+  }
+
+  void _applySyncingUpdate({
+    required int syncHeight,
+    required int nodeHeight,
+    required bool refreshTransactions,
+  }) {
+    if (nodeHeight > 0 && syncHeight >= 0) {
       currentKnownChainHeight = nodeHeight;
       updateChainHeight();
-      final blocksLeft = nodeHeight - syncHeight;
+      final blocksLeft = max(0, nodeHeight - syncHeight);
       final lib_monero_compat.SyncStatus status;
       if (blocksLeft == 0) {
         status = lib_monero_compat.SyncedSyncStatus();
@@ -829,6 +843,23 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
       _setSyncStatus(status);
       if (refreshTransactions) _refreshTxDataHelper();
+    }
+  }
+
+  @protected
+  Future<void> updateSyncStatusFromPolledHeights({
+    required WrappedWallet currentWallet,
+    required Future<({int syncHeight, int nodeHeight})> Function() readHeights,
+  }) async {
+    final generation = _syncUpdateGeneration;
+    final heights = await readHeights();
+    if (identical(currentWallet, wallet) &&
+        generation == _syncUpdateGeneration) {
+      _applySyncingUpdate(
+        syncHeight: heights.syncHeight,
+        nodeHeight: heights.nodeHeight,
+        refreshTransactions: false,
+      );
     }
   }
 
@@ -1170,17 +1201,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
       final currentWallet = wallet;
       if (currentWallet == null) return;
-      final previousStatus = syncStatus;
-      final heights = await csMonero.getSyncHeights(currentWallet);
-      // A listener or node change can deliver newer information during the read.
-      if (identical(currentWallet, wallet) &&
-          identical(previousStatus, syncStatus)) {
-        onSyncingUpdate(
-          syncHeight: heights.syncHeight,
-          nodeHeight: heights.nodeHeight,
-          refreshTransactions: false,
-        );
-      }
+      await updateSyncStatusFromPolledHeights(
+        currentWallet: currentWallet,
+        readHeights: () => csMonero.getSyncHeights(currentWallet),
+      );
     });
   }
 
