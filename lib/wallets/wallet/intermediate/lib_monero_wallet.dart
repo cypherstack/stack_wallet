@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:isar_community/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
@@ -114,6 +115,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
   lib_monero_compat.SyncStatus? _syncStatus;
   int _syncedCount = 0;
+  int _syncUpdateGeneration = 0;
   void _setSyncStatus(lib_monero_compat.SyncStatus status) {
     if (status is lib_monero_compat.SyncedSyncStatus) {
       if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
@@ -434,11 +436,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        highestPercentCached = 0;
         await csMonero.rescanBlockchain(wallet!);
-        // Reset again once the worker has accepted the rescan. A progress
-        // reading from before it can land in between and pin the guard near
-        // 100%, which hides every later reading until the rescan passes it.
         highestPercentCached = 0;
         await csMonero.startSyncing(wallet!);
         unawaited(save());
@@ -813,34 +811,55 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required int nodeHeight,
     String? message,
   }) {
+    _syncUpdateGeneration++;
+    _applySyncingUpdate(
+      syncHeight: syncHeight,
+      nodeHeight: nodeHeight,
+      refreshTransactions: true,
+    );
+  }
+
+  void _applySyncingUpdate({
+    required int syncHeight,
+    required int nodeHeight,
+    required bool refreshTransactions,
+  }) {
     if (nodeHeight > 0 && syncHeight >= 0) {
       currentKnownChainHeight = nodeHeight;
       updateChainHeight();
-      final blocksLeft = nodeHeight - syncHeight;
+      final blocksLeft = max(0, nodeHeight - syncHeight);
       final lib_monero_compat.SyncStatus status;
-      if (blocksLeft < 100) {
+      if (blocksLeft == 0) {
         status = lib_monero_compat.SyncedSyncStatus();
-
-        // if (!_hasSyncAfterStartup) {
-        //   _hasSyncAfterStartup = true;
-        //   await save();
-        // }
-        //
-        // if (walletInfo.isRecovery!) {
-        //   await setAsRecovered();
-        // }
       } else {
         final percent = syncHeight / currentKnownChainHeight;
 
         status = lib_monero_compat.SyncingSyncStatus(
           blocksLeft,
           percent,
-          currentKnownChainHeight,
+          syncHeight,
         );
       }
 
       _setSyncStatus(status);
-      _refreshTxDataHelper();
+      if (refreshTransactions) _refreshTxDataHelper();
+    }
+  }
+
+  @protected
+  Future<void> updateSyncStatusFromPolledHeights({
+    required WrappedWallet currentWallet,
+    required Future<({int syncHeight, int nodeHeight})> Function() readHeights,
+  }) async {
+    final generation = _syncUpdateGeneration;
+    final heights = await readHeights();
+    if (identical(currentWallet, wallet) &&
+        generation == _syncUpdateGeneration) {
+      _applySyncingUpdate(
+        syncHeight: heights.syncHeight,
+        nodeHeight: heights.nodeHeight,
+        refreshTransactions: false,
+      );
     }
   }
 
@@ -934,35 +953,19 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       if (_syncStatus is lib_monero_compat.SyncingSyncStatus) {
         final int blocksLeft = _syncStatus.blocksLeft;
 
-        // ensure at least 1 to prevent math errors
-        final int height = max(1, _syncStatus.height);
-
-        final nodeHeight = height + blocksLeft;
-        currentKnownChainHeight = nodeHeight;
-
-        // final percent = height / nodeHeight;
-        final percent = _syncStatus.ptc;
-
-        final highest = max(highestPercentCached, percent);
-
-        final unchanged = highest == highestPercentCached;
-        if (unchanged) {
-          return;
-        }
-
-        // update cached
-        if (highestPercentCached < percent) {
-          highestPercentCached = percent;
-        }
-
+        status = WalletSyncStatus.syncing;
+        highestPercentCached = _syncStatus.ptc;
         GlobalEventBus.instance.fire(
-          RefreshPercentChangedEvent(highest, walletId),
+          RefreshPercentChangedEvent(highestPercentCached, walletId),
         );
         GlobalEventBus.instance.fire(
           BlocksRemainingEvent(blocksLeft, walletId),
         );
       } else if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
+        highestPercentCached = 1;
+        GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1, walletId));
         status = WalletSyncStatus.synced;
+        GlobalEventBus.instance.fire(BlocksRemainingEvent(0, walletId));
       } else if (_syncStatus is lib_monero_compat.NotConnectedSyncStatus) {
         status = WalletSyncStatus.unableToSync;
         xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
@@ -1195,22 +1198,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
         await checkReceivingAddressForTransactions();
       }
-    });
 
-    Logging.instance.t(
-      "$runtimeType refresh() wallet != null && await csMonero.isSynced(wallet!)",
-    );
-    final synced = wallet != null && await csMonero.isSynced(wallet!);
-
-    Logging.instance.t(
-      "$runtimeType refresh() wallet != null && await csMonero.isSynced(wallet!) == $synced",
-    );
-    if (synced) {
-      Logging.instance.t(
-        "$runtimeType refresh() _setSyncStatus(lib_monero_compat.SyncedSyncStatus());",
+      final currentWallet = wallet;
+      if (currentWallet == null) return;
+      await updateSyncStatusFromPolledHeights(
+        currentWallet: currentWallet,
+        readHeights: () => csMonero.getSyncHeights(currentWallet),
       );
-      _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
-    }
+    });
   }
 
   @override
