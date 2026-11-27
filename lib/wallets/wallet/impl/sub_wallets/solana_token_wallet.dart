@@ -38,6 +38,8 @@ class SolanaTokenWallet extends Wallet {
 
   final SolContract solContract;
 
+  Future<void>? _tokenRefreshFuture;
+
   String get tokenMint => solContract.address;
   String get tokenName => solContract.name;
   String get tokenSymbol => solContract.symbol;
@@ -707,10 +709,17 @@ class SolanaTokenWallet extends Wallet {
   }
 
   @override
-  Future<void> refresh() async {
-    await parentSolanaWallet.refresh();
-    await updateBalance();
-    await updateTransactions();
+  Future<void> refresh() {
+    final activeRefresh = _tokenRefreshFuture;
+    if (activeRefresh != null) return activeRefresh;
+
+    final future = refreshMutex.protect(() async {
+      await parentSolanaWallet.refresh();
+      await updateBalance();
+      await updateTransactions();
+    });
+    _tokenRefreshFuture = future.whenComplete(() => _tokenRefreshFuture = null);
+    return _tokenRefreshFuture!;
   }
 
   @override
